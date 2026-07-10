@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import time
 import base64
+import uuid
 from main import QUESTIONS
 
 # ==========================================
@@ -87,7 +88,7 @@ def inject_custom_css():
         -webkit-backdrop-filter: blur(15px);
         border: 2px solid rgba(124, 58, 237, 0.3);
         border-radius: 30px;
-        padding: 2.5rem;
+        padding: clamp(1.5rem, 5vw, 2.5rem);
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(124, 58, 237, 0.1);
         margin-bottom: 2rem;
         text-align: center;
@@ -105,8 +106,8 @@ def inject_custom_css():
         border-radius: 24px;
         color: white;
         font-weight: 800;
-        font-size: 1.2rem !important;
-        padding: 0.8rem 2rem;
+        font-size: clamp(1rem, 3vw, 1.2rem) !important;
+        padding: clamp(0.5rem, 2vw, 0.8rem) clamp(1rem, 4vw, 2rem);
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4);
         width: 100%;
@@ -123,7 +124,7 @@ def inject_custom_css():
         background: linear-gradient(90deg, #7C3AED, #22D3EE) !important;
     }
     div[data-testid="stButton"] button p {
-        font-size: 1.3rem;
+        font-size: clamp(1rem, 3vw, 1.3rem);
         margin: 0;
         font-weight: 800;
     }
@@ -154,7 +155,7 @@ def inject_custom_css():
 
     /* Custom Text */
     .genz-title {
-        font-size: 5.5rem;
+        font-size: clamp(2.5rem, 8vw, 5.5rem);
         font-weight: 900;
         background: -webkit-linear-gradient(45deg, #22D3EE, #7C3AED, #f472b6);
         background-size: 200% auto;
@@ -171,12 +172,13 @@ def inject_custom_css():
     }
     
     @media (max-width: 800px) {
-        .genz-title { font-size: 3.5rem; }
         .meme-side { display: none !important; }
+        .genz-title { font-size: clamp(2rem, 10vw, 3.5rem); }
+        .glass-card { margin-bottom: 1rem; }
     }
 
     .genz-subtitle {
-        font-size: 1.5rem;
+        font-size: clamp(1rem, 4vw, 1.5rem);
         text-align: center;
         color: #e4e4e7 !important;
         margin-bottom: 2rem;
@@ -187,7 +189,7 @@ def inject_custom_css():
 
     /* Question styling */
     .question-text {
-        font-size: 2.2rem;
+        font-size: clamp(1.5rem, 5vw, 2.2rem);
         font-weight: 800;
         margin-bottom: 1.5rem;
         line-height: 1.3;
@@ -201,7 +203,7 @@ def inject_custom_css():
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-size: 1.8rem;
+        font-size: clamp(1.2rem, 4vw, 1.8rem);
         margin-bottom: 8px;
         color: #fff;
     }
@@ -256,7 +258,7 @@ def inject_custom_css():
 
     /* Rank Text */
     .rank-title {
-        font-size: 3.5rem;
+        font-size: clamp(2rem, 6vw, 3.5rem);
         font-weight: 900;
         margin: 1.5rem 0;
         text-align: center;
@@ -510,18 +512,35 @@ def render_feedback():
     
     meme_to_show = st.session_state.left_meme if is_correct else st.session_state.right_meme
     
+    # Generate unique ID to prevent mobile browser caching and force DOM recreation
+    audio_id = f"audio_{uuid.uuid4().hex}"
+    
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.html(f"""
-            <audio autoplay style="display:none;" src="{audio_src}"></audio>
+        st.markdown(f"""
+            <audio id="{audio_id}" autoplay style="display:none;">
+                <source src="{audio_src}" type="audio/mp3">
+            </audio>
+            <script>
+                var audioEl = document.getElementById("{audio_id}");
+                if (audioEl) {{
+                    audioEl.load();
+                    var playPromise = audioEl.play();
+                    if (playPromise !== undefined) {{
+                        playPromise.catch(function(error) {{
+                            console.log("Autoplay prevented by browser:", error);
+                        }});
+                    }}
+                }}
+            </script>
             <div class="glass-card {card_class}">
                 <img src="{meme_to_show}" class="meme-image" style="max-height: 250px; width: auto; margin-bottom: 2rem;">
-                <h2 style="color:{color} !important; font-size:2.5rem; font-weight:900;">{icon} {st.session_state.last_message}</h2>
+                <h2 style="color:{color} !important; font-size:clamp(1.8rem, 5vw, 2.5rem); font-weight:900;">{icon} {st.session_state.last_message}</h2>
                 <hr style="border-color: rgba(255,255,255,0.2); margin: 2rem 0;">
-                <p style="font-size:1.5rem; color:#e4e4e7;"><strong>THE TRUTH:</strong><br><br>{st.session_state.last_answer}</p>
+                <p style="font-size:clamp(1.2rem, 4vw, 1.5rem); color:#e4e4e7;"><strong>THE TRUTH:</strong><br><br>{st.session_state.last_answer}</p>
                 {motivational_text}
             </div>
-        """)
+        """, unsafe_allow_html=True)
         
         if st.button(":material/arrow_forward: NEXT QUESTION"):
             next_question()
@@ -544,14 +563,14 @@ def render_game_over():
         
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.html('<div class="genz-title" style="font-size:4rem;">GAME OVER</div>')
+        st.html('<div class="genz-title" style="font-size:clamp(3rem, 10vw, 5rem);">GAME OVER</div>')
         
         st.html(f"""
             <div class="glass-card" style="margin-top:2rem;">
                 {confetti_html}
                 <img src="{random.choice(MEMES)}" class="meme-image" style="width:60%; margin: 0 auto 2rem auto; display:block;">
-                <h1 style="font-size:5rem; margin:0; font-weight:900;">{score} / {total}</h1>
-                <h3 style="color:#22D3EE; font-size:2rem;">Accuracy: {pct}%</h3>
+                <h1 style="font-size:clamp(3.5rem, 12vw, 5rem); margin:0; font-weight:900;">{score} / {total}</h1>
+                <h3 style="color:#22D3EE; font-size:clamp(1.5rem, 5vw, 2rem);">Accuracy: {pct}%</h3>
                 <hr style="border-color:rgba(255,255,255,0.2); margin:2rem 0;">
                 <p style="font-size:1.8rem; color:#a1a1aa; font-weight:800; text-transform:uppercase;">Your Rank</p>
                 <div class="rank-title">{rank}</div>
