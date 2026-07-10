@@ -1,6 +1,7 @@
 import streamlit as st
 import random
 import time
+import base64
 from main import QUESTIONS
 
 # ==========================================
@@ -12,6 +13,19 @@ st.set_page_config(
     layout="wide", # changed to wide to fit side memes
     initial_sidebar_state="collapsed"
 )
+
+# AUDIO URLs
+def get_audio_base64(file_path):
+    try:
+        with open(file_path, "rb") as f:
+            data = f.read()
+            b64 = base64.b64encode(data).decode()
+            return f"data:audio/mp3;base64,{b64}"
+    except Exception:
+        return ""
+
+SOUND_CORRECT = get_audio_base64("i_got_this.mp3")
+SOUND_WRONG = get_audio_base64("fahh_sound.mp3")
 
 # ==========================================
 # MEME URLs
@@ -492,11 +506,14 @@ def render_feedback():
     icon = "<i class='fa-solid fa-check-circle'></i>" if is_correct else "<i class='fa-solid fa-circle-xmark'></i>"
     color = "#22c55e" if is_correct else "#ef4444"
     
+    audio_src = SOUND_CORRECT if is_correct else SOUND_WRONG
+    
     meme_to_show = st.session_state.left_meme if is_correct else st.session_state.right_meme
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.html(f"""
+            <audio autoplay style="display:none;" src="{audio_src}"></audio>
             <div class="glass-card {card_class}">
                 <img src="{meme_to_show}" class="meme-image" style="max-height: 250px; width: auto; margin-bottom: 2rem;">
                 <h2 style="color:{color} !important; font-size:2.5rem; font-weight:900;">{icon} {st.session_state.last_message}</h2>
