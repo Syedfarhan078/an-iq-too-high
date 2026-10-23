@@ -39,3 +39,11 @@ wheels/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+
+# IDE files
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
