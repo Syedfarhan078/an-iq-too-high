@@ -3,6 +3,7 @@ import random
 import time
 import base64
 import html
+from pathlib import Path
 from main import QUESTIONS
 
 # ==========================================
@@ -15,18 +16,46 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# AUDIO URLs
+# AUDIO
+BASE_DIR = Path(__file__).resolve().parent
+CORRECT_AUDIO_DIR = BASE_DIR / "correct_audio"
+INCORRECT_AUDIO_DIR = BASE_DIR / "incorrect_audio"
+AUDIO_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a"}
+
+def get_audio_files(directory):
+    if not directory.is_dir():
+        return []
+    return [
+        path for path in directory.iterdir()
+        if path.is_file() and path.suffix.lower() in AUDIO_EXTENSIONS
+    ]
+
+CORRECT_AUDIO_FILES = get_audio_files(CORRECT_AUDIO_DIR)
+INCORRECT_AUDIO_FILES = get_audio_files(INCORRECT_AUDIO_DIR)
+FALLBACK_CORRECT_AUDIO = BASE_DIR / "i_got_this.mp3"
+FALLBACK_INCORRECT_AUDIO = BASE_DIR / "fahh_sound.mp3"
+
 def get_audio_base64(file_path):
     try:
-        with open(file_path, "rb") as f:
+        with file_path.open("rb") as f:
             data = f.read()
             b64 = base64.b64encode(data).decode()
-            return f"data:audio/mp3;base64,{b64}"
-    except Exception:
+            mime_type = {
+                ".mp3": "audio/mpeg",
+                ".wav": "audio/wav",
+                ".ogg": "audio/ogg",
+                ".m4a": "audio/mp4",
+            }.get(file_path.suffix.lower(), "audio/mpeg")
+            return f"data:{mime_type};base64,{b64}"
+    except (OSError, ValueError):
         return ""
 
-SOUND_CORRECT = get_audio_base64("i_got_this.mp3")
-SOUND_WRONG = get_audio_base64("fahh_sound.mp3")
+def choose_feedback_audio(is_correct):
+    audio_files = CORRECT_AUDIO_FILES if is_correct else INCORRECT_AUDIO_FILES
+    fallback = FALLBACK_CORRECT_AUDIO if is_correct else FALLBACK_INCORRECT_AUDIO
+    if audio_files:
+        return random.choice(audio_files)
+    return fallback
 
 # ==========================================
 # MEME URLs
@@ -454,6 +483,8 @@ def init_state():
         st.session_state.last_explanation = ""
     if 'last_selected_answer' not in st.session_state:
         st.session_state.last_selected_answer = ""
+    if 'feedback_audio_path' not in st.session_state:
+        st.session_state.feedback_audio_path = None
     if 'current_user_input' not in st.session_state:
         st.session_state.current_user_input = ""
     if 'selected_option' not in st.session_state:
@@ -505,6 +536,7 @@ def submit_answer():
     st.session_state.last_selected_answer = q['options'][selected_option]
     st.session_state.last_answer = q['answer']
     st.session_state.last_explanation = q['explanation']
+    st.session_state.feedback_audio_path = choose_feedback_audio(is_correct)
     
     if is_correct:
         st.session_state.score += 1
@@ -522,6 +554,7 @@ def skip_question():
     st.session_state.last_message = f"Skipped! {random.choice(ROASTS)}"
     st.session_state.last_answer = q['answer']
     st.session_state.last_explanation = q['explanation']
+    st.session_state.feedback_audio_path = choose_feedback_audio(False)
     st.session_state.game_state = 'feedback'
     st.session_state.current_user_input = ""
 
@@ -663,7 +696,7 @@ def render_feedback():
     icon = "<i class='fa-solid fa-check-circle'></i>" if is_correct else "<i class='fa-solid fa-circle-xmark'></i>"
     color = "#22c55e" if is_correct else "#ef4444"
     
-    audio_src = SOUND_CORRECT if is_correct else SOUND_WRONG
+    audio_src = get_audio_base64(st.session_state.feedback_audio_path)
     
     meme_to_show = st.session_state.left_meme if is_correct else st.session_state.right_meme
     

@@ -102,6 +102,11 @@ Run the app
 streamlit run app.py
 ```
 
+Place correct-answer sounds in `correct_audio/` and incorrect-answer sounds in
+`incorrect_audio/`. Supported formats are MP3, WAV, OGG, and M4A. A random
+sound from the matching folder plays after each answer; the original sounds in
+the project root are used if a folder is empty.
+
 Open
 
 ```
@@ -153,6 +158,7 @@ Trick-Questions/
 - 🌎 Multiple Languages
 
 - ✅ Four carefully authored answer options for every question
+- 🔊 Random meme audio for correct and incorrect answers
 
 ---
 
