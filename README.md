@@ -70,6 +70,7 @@ Some might make you rage quit. 😂
 
 - 🐍 Python
 - 🎈 Streamlit
+- 🧠 Hand-written trick questions with four answer options
 - Git
 - GitHub
 
@@ -113,7 +114,7 @@ http://localhost:8501
 
 1. Click **Start Game**
 2. Read the trick question carefully
-3. Enter your answer
+3. Choose one of the four answers
 4. Try not to get fooled 😄
 5. Beat your previous score!
 
@@ -151,7 +152,7 @@ Trick-Questions/
 
 - 🌎 Multiple Languages
 
-- 🤖 AI Generated Trick Questions
+- ✅ Four carefully authored answer options for every question
 
 ---
 

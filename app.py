@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import time
 import base64
-import uuid
+import html
 from main import QUESTIONS
 
 # ==========================================
@@ -57,12 +57,15 @@ def inject_custom_css():
 
     /* Background Gradient with Meme overlay */
     .stApp {
-        background: linear-gradient(135deg, rgba(15,12,41,0.95), rgba(48,43,99,0.95), rgba(36,36,62,0.95)), 
+        background: linear-gradient(135deg, rgba(15,12,41,0.98), rgba(48,43,99,0.97), rgba(36,36,62,0.98)),
                     url('https://i.imgflip.com/1h7in3.jpg') repeat;
         background-size: 400% 400%, 300px 300px;
         background-blend-mode: overlay;
         animation: gradientBG 15s ease infinite;
         color: white;
+    }
+    [data-testid="stAppViewContainer"] {
+        background: rgba(8, 8, 20, 0.18);
     }
     @keyframes gradientBG {
         0% { background-position: 0% 50%, 0% 0%; }
@@ -175,6 +178,57 @@ def inject_custom_css():
         .meme-side { display: none !important; }
         .genz-title { font-size: clamp(2rem, 10vw, 3.5rem); }
         .glass-card { margin-bottom: 1rem; }
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap !important;
+            gap: 0.75rem !important;
+        }
+        [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+            min-width: 100% !important;
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+        [data-testid="column"]:has(.meme-side) {
+            display: none !important;
+        }
+        [data-testid="stRadio"] label {
+            font-size: 1.2rem !important;
+            line-height: 1.35 !important;
+        }
+        [data-testid="stRadio"] label p,
+        [data-testid="stRadio"] label div {
+            font-size: 1.05rem !important;
+            line-height: 1.35 !important;
+        }
+        div[data-testid="stButton"] button {
+            min-height: 3rem;
+            font-size: 0.95rem !important;
+            padding: 0.65rem 0.8rem;
+        }
+        .question-text {
+            font-size: clamp(1.25rem, 6vw, 1.8rem);
+            overflow-wrap: anywhere;
+        }
+        .meme-image {
+            max-width: 100%;
+            margin-top: 1rem;
+        }
+        .success-card,
+        .shake {
+            padding: 1.25rem !important;
+        }
+        [data-testid="stRadio"] [role="radiogroup"] {
+            gap: 0.7rem;
+        }
+        [data-testid="stRadio"] [role="radiogroup"] > label {
+            min-height: 4rem !important;
+            padding: 0.7rem !important;
+        }
+        [data-testid="stRadio"] [role="radiogroup"] > label p,
+        [data-testid="stRadio"] [role="radiogroup"] > label div,
+        [data-testid="stRadio"] [role="radiogroup"] > label span {
+            font-size: 1.35rem !important;
+            font-weight: 700 !important;
+        }
     }
 
     .genz-subtitle {
@@ -196,6 +250,72 @@ def inject_custom_css():
         background: -webkit-linear-gradient(#fff, #e4e4e7);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+    }
+    .answer-heading {
+        color: #cbd5e1 !important;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        margin: 0 0 0.65rem;
+        text-transform: uppercase;
+    }
+
+    [data-testid="stRadio"] label p,
+    [data-testid="stRadio"] label div {
+        font-size: 1.25rem !important;
+        line-height: 1.45 !important;
+    }
+
+    [data-testid="stRadio"] [role="radiogroup"] {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem 1.25rem;
+        width: 100%;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label {
+        align-items: center !important;
+        background: rgba(20, 20, 30, 0.78) !important;
+        border: 2px solid rgba(124, 58, 237, 0.45) !important;
+        border-radius: 16px !important;
+        box-sizing: border-box !important;
+        color: white !important;
+        cursor: pointer !important;
+        display: flex !important;
+        min-height: 5.25rem !important;
+        padding: 0.9rem 1rem !important;
+        transition: all 0.2s ease !important;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label:hover {
+        border-color: #22D3EE !important;
+        background: rgba(34, 211, 238, 0.16) !important;
+        transform: translateY(-2px);
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label p,
+    [data-testid="stRadio"] [role="radiogroup"] > label div {
+        color: white !important;
+        font-size: 1.6rem !important;
+        font-weight: 700 !important;
+        line-height: 1.35 !important;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label span {
+        color: white !important;
+        font-size: 1.6rem !important;
+        font-weight: 700 !important;
+        line-height: 1.35 !important;
+    }
+    .feedback-answer {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 14px;
+        font-size: 1.2rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        text-align: left;
+    }
+    [data-testid="stRadio"] [role="radiogroup"] > label:has(input:checked) {
+        background: rgba(124, 58, 237, 0.5) !important;
+        border-color: #22D3EE !important;
+        box-shadow: 0 0 18px rgba(34, 211, 238, 0.35);
     }
 
     /* Progress */
@@ -330,8 +450,16 @@ def init_state():
         st.session_state.last_message = ""
     if 'last_answer' not in st.session_state:
         st.session_state.last_answer = ""
+    if 'last_explanation' not in st.session_state:
+        st.session_state.last_explanation = ""
+    if 'last_selected_answer' not in st.session_state:
+        st.session_state.last_selected_answer = ""
     if 'current_user_input' not in st.session_state:
         st.session_state.current_user_input = ""
+    if 'selected_option' not in st.session_state:
+        st.session_state.selected_option = None
+    if 'question_source' not in st.session_state:
+        st.session_state.question_source = "Built-in fallback"
     if 'left_meme' not in st.session_state:
         st.session_state.left_meme = random.choice(MEMES)
     if 'right_meme' not in st.session_state:
@@ -341,11 +469,22 @@ def start_game():
     st.session_state.game_state = 'playing'
     st.session_state.score = 0
     st.session_state.current_q_idx = 0
+    st.session_state.selected_option = None
     st.session_state.left_meme = random.choice(MEMES)
     st.session_state.right_meme = random.choice(MEMES)
-    shuffled = list(QUESTIONS)
-    random.shuffle(shuffled)
-    st.session_state.active_questions = shuffled
+    st.session_state.active_questions = []
+    for question in QUESTIONS:
+        options = list(question["options"])
+        random.shuffle(options)
+        st.session_state.active_questions.append({
+            "question": question["question"],
+            "options": options,
+            "correct_index": options.index(question["answer"]),
+            "answer": question["answer"],
+            "explanation": question["answer"],
+        })
+    random.shuffle(st.session_state.active_questions)
+    st.session_state.question_source = "Hand-written questions"
 
 def check_answer(user_input, correct_answers):
     user_input = str(user_input).strip().lower()
@@ -356,12 +495,16 @@ def check_answer(user_input, correct_answers):
 
 def submit_answer():
     q = st.session_state.active_questions[st.session_state.current_q_idx]
-    user_val = st.session_state.current_user_input
-    
-    is_correct = check_answer(user_val, q['accept'])
+    selected_option = st.session_state.selected_option
+    if selected_option is None:
+        st.warning("Choose an option before submitting your answer.")
+        return
+    is_correct = bool(selected_option == q['correct_index'])
     
     st.session_state.last_answer_correct = is_correct
+    st.session_state.last_selected_answer = q['options'][selected_option]
     st.session_state.last_answer = q['answer']
+    st.session_state.last_explanation = q['explanation']
     
     if is_correct:
         st.session_state.score += 1
@@ -375,8 +518,10 @@ def submit_answer():
 def skip_question():
     q = st.session_state.active_questions[st.session_state.current_q_idx]
     st.session_state.last_answer_correct = False
+    st.session_state.last_selected_answer = "Skipped"
     st.session_state.last_message = f"Skipped! {random.choice(ROASTS)}"
     st.session_state.last_answer = q['answer']
+    st.session_state.last_explanation = q['explanation']
     st.session_state.game_state = 'feedback'
     st.session_state.current_user_input = ""
 
@@ -390,6 +535,7 @@ def next_question():
         st.session_state.game_state = 'game_over'
     else:
         st.session_state.game_state = 'playing'
+        st.session_state.selected_option = None
 
 def get_rank(score, total):
     if score <= 5: return "<i class='fa-solid fa-robot'></i> Certified NPC"
@@ -464,7 +610,7 @@ def render_playing():
         st.html(f"""
             <div class="brain-level">
                 <span><i class="fa-solid fa-child-reaching"></i></span>
-                <span style="font-size:1.2rem; color:#a1a1aa; font-weight:800;">{idx + 1} / {total}</span>
+                <span style="font-size:1.2rem; color:#a1a1aa; font-weight:800;">Question {idx + 1} of {total}</span>
                 <span><i class="fa-solid fa-brain" style="color:#f472b6;"></i></span>
             </div>
             <div class="progress-container">
@@ -476,11 +622,20 @@ def render_playing():
         
         st.html(f"""
             <div class="glass-card">
-                <div class="question-text">{q['question']}</div>
+                <div class="question-text">{html.escape(q['question'])}</div>
             </div>
         """)
-        
-        st.text_input("Your Answer", key="current_user_input", placeholder="Type your answer here...", on_change=submit_answer)
+
+        st.html("<div class='answer-heading'>Choose the best answer</div>")
+        st.radio(
+            "Choose the best answer:",
+            range(len(q['options'])),
+            format_func=lambda option_index: (
+                f"{'ABCD'[option_index]}. {q['options'][option_index]}"
+            ),
+            key="selected_option",
+            index=None,
+        )
         
         st.html("<br>")
         
@@ -512,8 +667,7 @@ def render_feedback():
     
     meme_to_show = st.session_state.left_meme if is_correct else st.session_state.right_meme
     
-    # Generate unique ID to prevent mobile browser caching and force DOM recreation
-    audio_id = f"audio_{uuid.uuid4().hex}"
+    audio_id = "feedback_audio"
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -522,8 +676,16 @@ def render_feedback():
                 <source src="{audio_src}" type="audio/mp3">
             </audio>
             <script>
+                document.querySelectorAll("audio").forEach(function(existingAudio) {{
+                    if (existingAudio.id !== "{audio_id}") {{
+                        existingAudio.pause();
+                        existingAudio.currentTime = 0;
+                    }}
+                }});
                 var audioEl = document.getElementById("{audio_id}");
                 if (audioEl) {{
+                    audioEl.pause();
+                    audioEl.currentTime = 0;
                     audioEl.load();
                     var playPromise = audioEl.play();
                     if (playPromise !== undefined) {{
@@ -537,7 +699,9 @@ def render_feedback():
                 <img src="{meme_to_show}" class="meme-image" style="max-height: 250px; width: auto; margin-bottom: 2rem;">
                 <h2 style="color:{color} !important; font-size:clamp(1.8rem, 5vw, 2.5rem); font-weight:900;">{icon} {st.session_state.last_message}</h2>
                 <hr style="border-color: rgba(255,255,255,0.2); margin: 2rem 0;">
-                <p style="font-size:clamp(1.2rem, 4vw, 1.5rem); color:#e4e4e7;"><strong>THE TRUTH:</strong><br><br>{st.session_state.last_answer}</p>
+                <div class="feedback-answer"><strong>YOUR ANSWER</strong><br>{html.escape(st.session_state.last_selected_answer)}</div>
+                <div class="feedback-answer"><strong>CORRECT ANSWER</strong><br>{html.escape(st.session_state.last_answer)}</div>
+                <p style="font-size:1.1rem; color:#a1a1aa;"><strong>WHY:</strong><br>{html.escape(st.session_state.last_explanation)}</p>
                 {motivational_text}
             </div>
         """, unsafe_allow_html=True)
@@ -603,6 +767,7 @@ def render_sidebar():
             st.metric("Current Score", f"{score} 🔥")
             st.metric("Questions Remaining", f"{total - idx}")
             st.metric("Total Questions", total)
+            st.caption(f"Question source: {st.session_state.question_source}")
         else:
             st.write("Start a game to see stats!")
             
